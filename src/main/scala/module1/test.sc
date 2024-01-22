@@ -1,12 +1,9 @@
-class Foo{
-  var i = 0
-  def +:(x: Int) = {
-    i = i + x
-    i
-  }
+val f: String => Int = {
+  case "foo" => 0
+  case _ => 1
 }
 
-val foo = new Foo
-
-foo.+:(10)
-10 +: foo
+def f2(x: String): Int = {
+  case "foo" => 0
+  case _ => 1
+}
