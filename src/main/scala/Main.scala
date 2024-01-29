@@ -1,9 +1,37 @@
-import module1.{hof, type_system}
+import module1.threads.{Thread1, getRatesLocation1, getRatesLocation2, getRatesLocation3, getRatesLocation4, getRatesLocation5, getRatesLocation6, getRatesLocation7, getRatesLocation8, printRunningTime}
+import module1.{hof, threads, type_system}
+
+import scala.collection.mutable
+
 
 object Main {
 
   def main(args: Array[String]): Unit = {
-    hof
+      println(s"Hello from ${Thread.currentThread().getName}")
+//      val t1 = new Thread1
+//      val t2 = new Thread1
+//      t1.start()
+//      t1.join()
+//      t2.start()
+
+      def rates = {
+        val tf1 = getRatesLocation7
+        val tf2 = getRatesLocation8
+        val tf3: threads.ToyFuture[Int] = for{
+            v1 <- tf1
+            v2 <- tf2
+        } yield v1 + v2
+
+
+        tf1.onComplete{ i1 =>
+          tf2.onComplete{ i2 =>
+            println(i1 + i2)
+          }
+        }
+      }
+
+      printRunningTime(rates)
+
 
   }
 }
