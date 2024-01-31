@@ -1,5 +1,6 @@
 package module1
 
+import module1.threads.ToyFuture
 import module1.utils.NameableThreads
 
 import java.io.File
@@ -10,6 +11,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise, TimeoutException}
 import scala.io.{BufferedSource, Source}
 import scala.language.{existentials, postfixOps}
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.global
 
 object threads {
 
@@ -152,3 +154,146 @@ object executor {
         Executors.newSingleThreadExecutor(NameableThreads("singleThread-pool-4"))
 }
 
+object try_{
+
+  def readFromFile(): List[String] = {
+    val s: BufferedSource = Source.fromFile(new File("ints.txt"))
+    try {
+      val r = s.getLines().toList
+      r
+    } catch {
+      case e: Throwable =>
+        println(e.getMessage)
+        Nil
+    } finally {
+      s.close()
+    }
+  }
+
+  def readFromFile2(): Try[List[String]] = {
+    val s: BufferedSource = Source.fromFile(new File("ints.txt"))
+    val r = Try(s.getLines().toList)
+    s.close()
+    r
+  }
+
+  def readFromFile3(): Try[List[Int]] = {
+    val source: Try[BufferedSource] = Try(Source.fromFile(new File("ints.txt")))
+    def lines(s: BufferedSource): Try[List[Int]] = {
+      Try(s.getLines().toList.map(_.toInt))
+    }
+    val r: Try[List[Int]] = for{
+      s <- source
+      l <- lines(s)
+    } yield l
+    source.foreach(_.close())
+    r
+  }
+
+
+}
+
+object future{
+  // constructors
+  val f1: Future[Int] = Future.successful(10)
+  val f2: Future[Int] = Future.failed[Int](new Throwable("Not found"))
+  val f3 = Future(10 + 20)(global)
+
+
+  def getRatesLocation1: Future[Int] = Future{
+    Thread.sleep(2000)
+    println("GetRatesLocation1")
+    10
+  }(global)
+
+  def getRatesLocation2: Future[Int] = Future{
+    Thread.sleep(1000)
+    println("GetRatesLocation2")
+    20
+  }(global)
+
+  // combinators
+  def longRunningComputation: Int = ???
+
+
+  def ratesSum: Future[(Int, Int)] =
+    getRatesLocation1.zip(getRatesLocation2)
+
+  val r: Future[(Int, Int)] = ratesSum.recover{
+    case _ => (0, 0)
+  }(global)
+
+//  def printRunningTime(v: => Unit): Unit = {
+//    val start = System.currentTimeMillis()
+//    v
+//    val end = System.currentTimeMillis()
+//    println(s"Execution time ${end - start}")
+//  }
+
+  implicit val ec = global
+
+  def printRunningTime[T](v: => Future[T]): Future[T] = for{
+    start <- Future.successful(System.currentTimeMillis())
+    r <- v
+    end <- Future.successful(System.currentTimeMillis())
+    _ <- Future.successful(println(s"Execution time ${end - start}"))
+  } yield r
+
+
+
+
+  def action(v: Int): Int = {
+    Thread.sleep(1000)
+    println(s"Action $v in ${Thread.currentThread().getName}")
+    v
+  }
+
+
+  // Execution contexts
+  val ec1 = ExecutionContext.fromExecutor(executor.pool1)
+  val ec2 = ExecutionContext.fromExecutor(executor.pool2)
+  val ec3 = ExecutionContext.fromExecutor(executor.pool3)
+  val ec4 = ExecutionContext.fromExecutor(executor.pool4)
+
+
+  val f01 = Future(action(1))(ec1)
+  val f02 = Future(action(2))(ec2)
+
+  val f03 = f1.flatMap{ v1 =>
+    action(5)
+    f2.map{ v2 =>
+//      action(6)
+      action(v1 + v2)
+    }(ec4)
+  }(ec3)
+
+
+
+}
+
+object promise {
+
+  val p: Promise[Int] = Promise[Int]
+  val f1: Future[Int] = p.future
+
+  p.isCompleted // false
+  f1.isCompleted // false
+  p.complete(Try(10)) //
+  f1.isCompleted // true
+
+
+
+  object FutureSyntax{
+     def map[T, B](future: Future[T])(f: T => B): Future[B] = {
+       val p = Promise[B]
+       future.onComplete {
+         case Failure(exception) =>
+           p.failure(exception)
+         case Success(value) =>
+           p.complete(Try(f(value)))
+       }(global)
+       p.future
+     }
+  }
+
+}
