@@ -31,6 +31,6 @@ object Implicits{
 }
 
 object  testfeedback1 {
- //import Implicits.orderBy
+  import Implicits.orderBy
   sort(List(new Bar))
 }
