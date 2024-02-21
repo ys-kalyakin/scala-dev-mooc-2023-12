@@ -1,6 +1,8 @@
 import module1.threads.{Thread1, getRatesLocation1, getRatesLocation2, getRatesLocation3, getRatesLocation4, getRatesLocation5, getRatesLocation6, getRatesLocation7, getRatesLocation8, printRunningTime}
 import module1.{future, hof, list, threads, type_system}
 import module2.implicits.implicit_scopes
+import module3.functional_effects.functionalProgram
+import module3.functional_effects.functionalProgram.executableEncoding
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -51,7 +53,11 @@ object Main {
 
 //    future.f03
 
+//    val c: executableEncoding.Console[Unit] = functionalProgram.executableEncoding.greet.flatMap(_ =>
+//    functionalProgram.executableEncoding.askForAge)
+//    c.run()
 
-    implicit_scopes.result
+    functionalProgram.declarativeEncoding
+      .interpret(functionalProgram.declarativeEncoding.greet2)
   }
 }
