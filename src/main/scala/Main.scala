@@ -3,6 +3,8 @@ import module1.{future, hof, list, threads, type_system}
 import module2.implicits.implicit_scopes
 import module3.functional_effects.functionalProgram
 import module3.functional_effects.functionalProgram.executableEncoding
+import module3.{toyModel, zioConstructors}
+import zio.{ExitCode, URIO, ZIO}
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -57,7 +59,13 @@ object Main {
 //    functionalProgram.executableEncoding.askForAge)
 //    c.run()
 
-    functionalProgram.declarativeEncoding
-      .interpret(functionalProgram.declarativeEncoding.greet2)
+    toyModel.echo.run()
+
+    // zio.Runtime.default.unsafeRun(zioConstructors.z11)
   }
+}
+
+object ZIOApp extends zio.App {
+  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+    zioConstructors.z1.exitCode
 }

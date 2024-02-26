@@ -6,6 +6,7 @@ organization := "ru.otus"
 version := "1.0"
 
 libraryDependencies += Dependencies.scalaTest
+libraryDependencies ++= Dependencies.zio
 
 
 scalacOptions += "-Ymacro-annotations"
