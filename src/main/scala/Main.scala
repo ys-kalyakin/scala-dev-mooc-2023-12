@@ -3,7 +3,7 @@ import module1.{future, hof, list, threads, type_system}
 import module2.implicits.implicit_scopes
 import module3.functional_effects.functionalProgram
 import module3.functional_effects.functionalProgram.executableEncoding
-import module3.{toyModel, zioConstructors}
+import module3.{multipleErrors, toyModel, zioConstructors, zioRecursion}
 import zio.{ExitCode, URIO, ZIO}
 
 import scala.collection.mutable
@@ -59,9 +59,10 @@ object Main {
 //    functionalProgram.executableEncoding.askForAge)
 //    c.run()
 
-    toyModel.echo.run()
+//    toyModel.echo.run()
 
-    // zio.Runtime.default.unsafeRun(zioConstructors.z11)
+     //println(zioRecursion.factorial(10000))
+     println(zio.Runtime.default.unsafeRun(multipleErrors.app))
   }
 }
 
