@@ -23,5 +23,4 @@ object multipleErrors{
             ZIO.effect(println(left.failureOption)) zipRight
               ZIO.effect(println(right.failureOption))
     }
-    
 }

@@ -10,3 +10,4 @@ libraryDependencies ++= Dependencies.zio
 
 
 scalacOptions += "-Ymacro-annotations"
+scalacOptions += "-Xlint"
