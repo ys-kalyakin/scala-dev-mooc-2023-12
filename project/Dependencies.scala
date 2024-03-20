@@ -28,4 +28,6 @@ object Dependencies {
     "dev.zio" %% "zio-config-magnolia" % "1.0.5",
     "dev.zio" %% "zio-config-typesafe" % "1.0.5"
   )
+
+
 }
