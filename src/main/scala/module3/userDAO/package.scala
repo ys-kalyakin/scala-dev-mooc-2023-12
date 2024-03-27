@@ -24,7 +24,7 @@ package object userDAO {
        }
 
        // 3
-       val live: ULayer[UserDAO] = ???
+       lazy val live: ULayer[UserDAO] = ???
      }
 
 

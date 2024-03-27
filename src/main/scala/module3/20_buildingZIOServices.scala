@@ -10,7 +10,7 @@ import zio.{Has, ZIO, ZLayer}
 object buildingZIOServices{
 
 
-  val app: ZIO[UserService with EmailService with UserDAO, Throwable, Unit] =
+  val app =
     UserService.notifyUser(UserID(1))
 
   val env: ZLayer[Any, Nothing, UserDAO with UserService with EmailService] =
