@@ -149,3 +149,23 @@ object transformers{
   val cd: Future[Option[Int]] = r.value
 
 }
+
+import cats.Semigroup
+import cats.Monoid
+import cats.Functor
+import cats.instances.int._
+import cats.syntax.semigroup._
+import cats.syntax.functor._
+
+
+object AbstractStuct {
+  val semigroupInt = Semigroup[Int]
+  val res = semigroupInt.combine(1,2)
+
+  val monoidString = Monoid[String]
+  val res1 = monoidString.empty
+
+  val functorInt: Option[Int] = Some(5)
+  val res2 = functorInt.map(_ + 1)
+
+}
