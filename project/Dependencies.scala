@@ -16,6 +16,11 @@ object Dependencies {
     "org.typelevel" %% "cats-effect" % "3.4.5"
   )
 
+  lazy val fs2: Seq[ModuleID] = Seq(
+    "co.fs2" %% "fs2-core" % "3.6.1",
+    "co.fs2" %% "fs2-io"   % "3.6.1"
+  )
+
   lazy val zio: Seq[ModuleID] = Seq(
     "dev.zio" %% "zio" % ZioVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
