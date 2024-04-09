@@ -2,7 +2,9 @@ package catsconcurrency.cats_effect_homework
 
 import cats.effect.Sync
 import cats.implicits._
-import Wallet._
+import catsconcurrency.cats_effect_homework.Wallet._
+
+import java.nio.file.{Files, Paths, StandardOpenOption}
 
 // DSL управления электронным кошельком
 trait Wallet[F[_]] {
@@ -25,9 +27,29 @@ trait Wallet[F[_]] {
 // - java.nio.file.Files.exists
 // - java.nio.file.Paths.get
 final class FileWallet[F[_]: Sync](id: WalletId) extends Wallet[F] {
-  def balance: F[BigDecimal] = ???
-  def topup(amount: BigDecimal): F[Unit] = ???
-  def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = ???
+  def balance: F[BigDecimal] = {
+    Sync[F].delay {
+      Files.readString(Paths.get(s"$id"))
+    }.map(v => BigDecimal(v))
+  }
+  def topup(amount: BigDecimal): F[Unit] = {
+    balance.map { v =>
+       v + amount
+    }.flatMap { balance =>
+      Sync[F].delay {
+        Files.write(Paths.get(s"$id"), balance.toString().getBytes, StandardOpenOption.TRUNCATE_EXISTING)
+      }
+    }
+  }
+  def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = {
+    balance.flatMap {
+      case v if v >= amount => Sync[F].delay {
+        Files.write(Paths.get(s"$id"), (v - amount).toString().getBytes, StandardOpenOption.TRUNCATE_EXISTING)
+        ()
+      }.map(_.asRight[WalletError])
+      case _ => BalanceTooLow.pure[F].map(_.asLeft[Unit])
+    }
+  }
 }
 
 object Wallet {
@@ -37,7 +59,21 @@ object Wallet {
   // Здесь нужно использовать обобщенную версию уже пройденного вами метода IO.delay,
   // вызывается она так: Sync[F].delay(...)
   // Тайпкласс Sync из cats-effect описывает возможность заворачивания сайд-эффектов
-  def fileWallet[F[_]: Sync](id: WalletId): F[Wallet[F]] = ???
+  def fileWallet[F[_]: Sync](id: WalletId): F[Wallet[F]] = {
+
+    val filePath = Paths.get(s"$id.txt")
+
+    val createEff = for {
+      fileNotExists <- Sync[F].delay { Files.notExists(filePath) }
+      _ <- if (fileNotExists) Sync[F].delay {
+        Files.write(filePath,
+          BigDecimal(0).toString.getBytes,
+          StandardOpenOption.CREATE_NEW)
+      } else Sync[F].unit
+    } yield ()
+
+    createEff >> Sync[F].pure { new FileWallet[F](id) }
+  }
 
   type WalletId = String
 
