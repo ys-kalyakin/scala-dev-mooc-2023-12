@@ -7,6 +7,7 @@ import fs2.{Chunk, Pure, Stream}
 
 import java.time.Instant
 import scala.concurrent.duration._
+import scala.sys.process.ProcessBuilder.Sink
 
 object Streams extends IOApp.Simple {
   //1.
@@ -129,7 +130,5 @@ object Streams extends IOApp.Simple {
     //11
 //    queueStream.through(increment).through(multiplication).evalMap(IO.println).compile.drain
     (queueStream ++ queueStream1).evalMap(IO.println).compile.drain
-
   }
-
 }
