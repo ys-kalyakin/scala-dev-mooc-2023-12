@@ -21,6 +21,13 @@ object Dependencies {
     "co.fs2" %% "fs2-io"   % "3.6.1"
   )
 
+  lazy val http4s: Seq[ModuleID] = Seq(
+    "org.http4s" %% "http4s-client" % "0.23.18",
+    "org.http4s" %% "http4s-dsl" % "0.23.18",
+    "org.http4s" %% "http4s-ember-server" % "0.23.18",
+    "org.http4s" %% "http4s-ember-client" % "0.23.18",
+  )
+
   lazy val zio: Seq[ModuleID] = Seq(
     "dev.zio" %% "zio" % ZioVersion,
     "dev.zio" %% "zio-test" % ZioVersion,
