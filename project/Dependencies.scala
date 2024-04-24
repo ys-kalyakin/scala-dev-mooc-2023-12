@@ -3,6 +3,7 @@ import sbt._
 
 object Dependencies {
   lazy val KindProjectorVersion = "0.10.3"
+  lazy val CirceVersion = "0.14.2"
   lazy val ZioVersion = "1.0.4"
 
 
@@ -41,5 +42,12 @@ object Dependencies {
     "dev.zio" %% "zio-config-typesafe" % "1.0.5"
   )
 
-
+  lazy val circe = Seq(
+    "io.circe" %% "circe-core" % CirceVersion,
+    "io.circe" %% "circe-generic" % CirceVersion,
+    "io.circe" %% "circe-parser" % CirceVersion,
+    "io.circe" %% "circe-fs2" % "0.14.0",
+    "io.circe" %% "circe-derivation" % "0.13.0-M4",
+    "org.http4s" %% "http4s-circe" % "0.23.14"
+  )
 }
