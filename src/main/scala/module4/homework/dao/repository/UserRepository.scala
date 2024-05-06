@@ -36,27 +36,67 @@ object UserRepository{
     }
 
     class ServiceImpl extends Service{
-        override def findUser(userId: UserId): QIO[Option[User]] = ???
+        private lazy val userSchema = quote {
+            querySchema[User]("User")
+        }
 
-        override def createUser(user: User): QIO[User] = ???
+        private lazy val roleSchema = quote {
+            querySchema[Role]("Role")
+        }
 
-        override def createUsers(users: List[User]): QIO[List[User]] = ???
+        private lazy val userToRoleSchema = quote {
+            querySchema[UserToRole]("UserToRole")
+        }
 
-        override def updateUser(user: User): QIO[Unit] = ???
+        override def findUser(userId: UserId): QIO[Option[User]] = 
+            run(userSchema.filter(_.id == lift(userId.id))).map(_.headOption)
 
-        override def deleteUser(user: User): QIO[Unit] = ???
+        override def createUser(user: User): QIO[User] = run(userSchema.insert(lift(user))).as(user)
 
-        override def findByLastName(lastName: String): QIO[List[User]] = ???
+        override def createUsers(users: List[User]): QIO[List[User]] =
+            run(quote {
+                liftQuery(users).foreach { u => userSchema.insert(u) }
+            }).as(users)
 
-        override def list(): QIO[List[User]] = ???
+        override def updateUser(user: User): QIO[Unit] =
+            run(quote {userSchema.filter(_.id == lift(user.id))}.update(lift(user))).unit
 
-        override def userRoles(userId: UserId): QIO[List[Role]] = ???
+        override def deleteUser(user: User): QIO[Unit] =
+            run(userSchema.filter {_.id == lift(user.id)}.delete).unit
 
-        override def insertRoleToUser(roleCode: RoleCode, userId: UserId): QIO[Unit] = ???
+        override def findByLastName(lastName: String): QIO[List[User]] =
+            run(userSchema.filter{ _.lastName == lift(lastName) })
 
-        override def listUsersWithRole(roleCode: RoleCode): QIO[List[User]] = ???
+        override def list(): QIO[List[User]] = run(userSchema)
 
-        override def findRoleByCode(roleCode: RoleCode): QIO[Option[Role]] = ???
+        override def userRoles(userId: UserId): QIO[List[Role]] = {
+            val query = quote {
+               for {
+                   user <- userSchema.filter { _.id == lift(userId.id) }
+                   link <- userToRoleSchema if user.id == link.userId
+                   role <- roleSchema if link.roleId == role.code
+                } yield role
+            }
+            run(query)
+        }
+
+        override def insertRoleToUser(roleCode: RoleCode, userId: UserId): QIO[Unit] = 
+            run(userToRoleSchema.insert(_.roleId -> lift(roleCode.code), _.userId -> lift(userId.id))).unit
+
+        override def listUsersWithRole(roleCode: RoleCode): QIO[List[User]] = {
+            val q = quote {
+                for {
+                    users <- userSchema
+                    link <- userToRoleSchema.join(l => l.userId == users.id)
+                    role <- roleSchema.filter {_.code == lift(roleCode.code)}.join(r => r.code == link.roleId)
+                } yield (users, link, role)._1
+            }
+        
+            run(q.distinct)
+        }
+
+        override def findRoleByCode(roleCode: RoleCode): QIO[Option[Role]] = 
+            run(roleSchema.filter {_.code == lift(roleCode.code)}).map(_.headOption)
     }
 
     val live: ULayer[UserRepository] = ZLayer.succeed(new ServiceImpl)
